@@ -6,7 +6,6 @@ import (
 	makecrd_com "github.com/souravbiswassanto/crd/pkg/apis/makecrd.com"
 	controllerv1 "github.com/souravbiswassanto/crd/pkg/apis/makecrd.com/v1alpha1"
 	clientset "github.com/souravbiswassanto/crd/pkg/client/clientset/versioned"
-	informer "github.com/souravbiswassanto/crd/pkg/client/informers/externalversions/makecrd.com/v1alpha1"
 	lister "github.com/souravbiswassanto/crd/pkg/client/listers/makecrd.com/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -14,7 +13,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
-	appsinformers "k8s.io/client-go/informers/apps/v1"
 	"k8s.io/client-go/kubernetes"
 	appslisters "k8s.io/client-go/listers/apps/v1"
 	"k8s.io/client-go/tools/cache"
@@ -37,36 +35,6 @@ type Controller struct {
 }
 
 // Newcontroller returns a new sapmple controller
-
-func NewController(
-	kubeclientset kubernetes.Interface,
-	sampleclientset clientset.Interface,
-	deploymentInformer appsinformers.DeploymentInformer,
-	crdInformer informer.CrdInformer) *Controller {
-	ctrl := &Controller{
-		kubeclientset:     kubeclientset,
-		sampleclientset:   sampleclientset,
-		deploymentsLister: deploymentInformer.Lister(),
-		deploymentsSynced: deploymentInformer.Informer().HasSynced,
-		crdLister:         crdInformer.Lister(),
-		crdSynced:         crdInformer.Informer().HasSynced,
-		workQueue:         workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Crds"),
-	}
-	log.Println("Setting up eventhandler")
-	crdInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
-		AddFunc: ctrl.enqueueCrds,
-		UpdateFunc: func(oldObj, newObj interface{}) {
-			fmt.Println("helelelelele kjkljd ljlk")
-			ctrl.enqueueCrds(newObj)
-		},
-		DeleteFunc: func(obj interface{}) {
-			fmt.Println("Delete function was called")
-			ctrl.enqueueCrds(obj)
-		},
-	})
-
-	return ctrl
-}
 
 func (c *Controller) syncHandler(key string) error {
 	namespace, name, err := cache.SplitMetaNamespaceKey(key)

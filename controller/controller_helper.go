@@ -2,12 +2,47 @@ package controller
 
 import (
 	"fmt"
+	clientset "github.com/souravbiswassanto/crd/pkg/client/clientset/versioned"
+	informer "github.com/souravbiswassanto/crd/pkg/client/informers/externalversions/makecrd.com/v1alpha1"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
+	appsinformers "k8s.io/client-go/informers/apps/v1"
+	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
+	"k8s.io/client-go/util/workqueue"
 	"log"
 	"time"
 )
+
+func NewController(
+	kubeclientset kubernetes.Interface,
+	sampleclientset clientset.Interface,
+	deploymentInformer appsinformers.DeploymentInformer,
+	crdInformer informer.CrdInformer) *Controller {
+	ctrl := &Controller{
+		kubeclientset:     kubeclientset,
+		sampleclientset:   sampleclientset,
+		deploymentsLister: deploymentInformer.Lister(),
+		deploymentsSynced: deploymentInformer.Informer().HasSynced,
+		crdLister:         crdInformer.Lister(),
+		crdSynced:         crdInformer.Informer().HasSynced,
+		workQueue:         workqueue.NewNamedRateLimitingQueue(workqueue.DefaultControllerRateLimiter(), "Crds"),
+	}
+	log.Println("Setting up eventhandler")
+	crdInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{
+		AddFunc: ctrl.enqueueCrds,
+		UpdateFunc: func(oldObj, newObj interface{}) {
+			fmt.Println("helelelelele kjkljd ljlk")
+			ctrl.enqueueCrds(newObj)
+		},
+		DeleteFunc: func(obj interface{}) {
+			fmt.Println("Delete function was called")
+			ctrl.enqueueCrds(obj)
+		},
+	})
+
+	return ctrl
+}
 
 func (c *Controller) enqueueCrds(obj interface{}) {
 	log.Println("enqueueing custom resource")
