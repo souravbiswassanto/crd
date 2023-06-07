@@ -1,0 +1,10 @@
+apiVersion: makecrd.com/v1alpha1
+kind: Crd
+metadata:
+  name: myowned-1
+spec:
+  name:
+  container:
+    image: souravbiswassanto/bookserver
+    port: 8081
+  replicas: 3

@@ -6,5 +6,5 @@ spec:
   name: test
   container:
     image: souravbiswassanto/bookserver
-    port: 8081
-  replicas: 3
+    port: 8080
+  replicas: 2
