@@ -1,3 +1,4 @@
+// +groupName=makecrd.com
 package v1alpha1
 
 import (
@@ -7,7 +8,7 @@ import (
 type CrdSpec struct {
 	Name      string        `json:"name,omitempty"`
 	Replicas  *int32        `json:"replicas"`
-	Container ContainerSpec `json:"container,container"`
+	Container ContainerSpec `json:"container,omitempty"`
 }
 type ContainerSpec struct {
 	Image string `json:"image,omitempty"`
